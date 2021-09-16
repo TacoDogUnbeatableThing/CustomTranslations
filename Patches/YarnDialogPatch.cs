@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.IO;
+using HarmonyLib;
+using TranslationMod.Translation;
 using UnityEngine;
 using Yarn.Unity;
 
@@ -7,17 +9,17 @@ namespace TranslationMod.Patches
     public static class YarnDialogPatch
     {
 
+        public static readonly string UTILITY_ORIGINAL_FILENAME = "UnbeatableTranslations_ORIGINAL.json";
 
         [HarmonyPatch(typeof(DialogueRunner), "Awake")]
         [HarmonyPostfix]
         private static void AddCustomProject(DialogueRunner __instance)
         {
-            var local = __instance.yarnProject.baseLocalization;
-            foreach (string key in local.GetLineIDs())
+            if (!File.Exists(UTILITY_ORIGINAL_FILENAME))
             {
-                local.AddLocalizedString(key, "Beat: Sussy Balls.");
+                TranslationHelper.SaveAllCurrentDialogueToFile(__instance.yarnProject.baseLocalization, UTILITY_ORIGINAL_FILENAME);
             }
-            Debug.Log($"REPLACED: {local.LocaleCode}");
+            TranslationHelper.PatchInTranslations(__instance, TranslationMod.Instance.TranslationLoader.Data);
         }
     }
 }
